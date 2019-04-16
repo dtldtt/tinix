@@ -1,0 +1,9 @@
+{
+    "C_Cpp.errorSquiggles": "Enabled",
+    "files.associations": {
+        "*.erb": "html",
+        "heap.h": "c",
+        "debug.h": "c",
+        "idt.h": "c"
+    }
+}
