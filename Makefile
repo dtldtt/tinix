@@ -20,9 +20,9 @@ ASM = nasm
 
 C_FLAGS = -c -Wall -m32 -ggdb -gstabs+ -nostdinc -fno-builtin -fno-stack-protector -I include
 LD_FLAGS = -T scripts/kernel.ld -m elf_i386 -nostdlib
-ASM_FLAGS = -f elf -g -F stabs
+ASM_FLAGS = -f elf -g -F stabs -I boot/
 
-all: $(S_OBJECTS) $(C_OBJECTS) link update_image
+all: $(S_OBJECTS) $(C_OBJECTS) link load_image
 
 # The automatic variable `$<' is just the first prerequisite
 .c.o:
@@ -39,18 +39,26 @@ link:
 
 .PHONY:clean
 clean:
-	$(RM) $(S_OBJECTS) $(C_OBJECTS) hx_kernel
+	$(RM) $(S_OBJECTS) $(C_OBJECTS) hx_kernel ./boot/*.bin
+
+.PHONY:load_image
+load_image:
+	nasm -I ./boot/ -o ./boot/boot.bin ./boot/boot.s
+	nasm -I ./boot/ -o ./boot/loader.bin ./boot/loader.s
+	dd if=./boot/boot.bin of=hard_disk.img bs=512 count=1 conv=notrunc
+	dd if=./boot/loader.bin of=hard_disk.img bs=512 count=4 seek=2 conv=notrunc
+	dd if=./hx_kernel of=hard_disk.img bs=512 count=200 seek=9 conv=notrunc
 
 .PHONY:update_image
 update_image:
-	sudo mount floppy.img /mnt/kernel
+	sudo mount hard_disk.img /mnt/kernel
 	sudo cp hx_kernel /mnt/kernel/hx_kernel
 	sleep 1
 	sudo umount /mnt/kernel
 
 .PHONY:mount_image
 mount_image:
-	sudo mount floppy.img /mnt/kernel
+	sudo mount hard_disk.img /mnt/kernel
 
 .PHONY:umount_image
 umount_image:
@@ -58,16 +66,19 @@ umount_image:
 
 .PHONY:qemu
 qemu:
-	qemu -fda floppy.img -boot a	
+	qemu -hda hard_disk.img -boot c
+	#qemu -fda floppy.img -boot a	
 	#add '-nographic' option if using server of linux distro, such as fedora-server,or "gtk initialization failed" error will occur.
+	# -fda 使用文件作为软盘, -hda 使用文件作为硬盘  -boot 启动选项，默认从硬盘启动，a表示从软盘启动,c表示硬盘
 
 .PHONY:bochs
 bochs:
-	bochs -f scripts/bochsrc.txt
+	bochs -f scripts/bochsrc.disk
 
 .PHONY:debug
 debug:
-	qemu -S -s -fda floppy.img -boot a &
+	qemu -S -s -hda hard_disk.img -boot c &
+	#qemu -S -s -fda floppy.img -boot a &
 	sleep 1
 	cgdb -x scripts/gdbinit
 

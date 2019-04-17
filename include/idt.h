@@ -153,9 +153,9 @@ void irq14(); 		// IDE0 传输控制使用
 void irq15(); 		// IDE1 传输控制使用
 
 // 开启中断
-void enable_intr()
-{
-    asm volatile ("sti");
-}
+// void enable_intr()
+// {
+//     asm volatile ("sti");
+// }
 
  #endif         //INCLUDE_IDT_H
