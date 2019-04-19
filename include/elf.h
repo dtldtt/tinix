@@ -19,7 +19,7 @@
 #define INCLUDE_ELF_H
 
 #include "types.h"
-#include "multiboot.h"
+#include "information.h"
 
 #define ELF32_ST_TYPE(i) ((i)&0xf)
 
@@ -62,7 +62,7 @@ struct elf_t
 } elf_t;
 
 //从multiboot_t结构获取信息ELF
-elf_t elf_from_multiboot(multiboot_t *mb);
+elf_t elf_from_multiboot(section_header_t *sht);
 
 //查看的符号信息ELF
 const char* elf_lookup_symbol(uint32_t addr,elf_t *elf);

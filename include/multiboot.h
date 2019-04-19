@@ -37,7 +37,7 @@ struct multiboot_t
     uint32_t mods_addr;
 
     /**
-     * ELF格式内核映像的section头表，包括没想的大小
+     * ELF格式内核映像的section头表，包括每项的大小
      * 共有几项以及作为名字索引的字符串
      */
     uint32_t num;

@@ -168,6 +168,25 @@ __attribute__((section(".init.text")))int kern_entry()
 {
 	//asm volatile ("movl %esp,%eax");
 	console_clear();
+	init_debug();
+	
+	//elf_from_multiboot(section_header_table);
+	// printk("%X\n%X\n%X\n%X\n",section_header_table->addr,section_header_table->size,section_header_table->num,section_header_table->shndx);
+	// int i;
+	// elf_section_header_t *esht = (elf_section_header_t *)(section_header_table->addr);
+	// // printk("%x\n",esht);
+	// // uint32_t real_addr=0x7b6e4;
+	// // elf_section_header_t* sh_addr = (elf_section_header_t *)real_addr;
+	// uint32_t strtable = (esht[section_header_table->shndx].addr);
+	// printk("\n%X\n\n",strtable);
+	// for(i=0;i<section_header_table->num;i++)
+	// {
+	// 	const char *strtmp = (const char*)(strtable + esht->name);
+	// 	//printk("%X\n",esht[i].name);
+	// 	printk("%s\n",strtmp);
+	// 	esht++;
+	// }
+	
 
 	/*uint8_t str[]="Hello DTL!This is Your OS!\nIn this section of the tutorial, we will delve into a bit of assembler,\ 
 	learn the basics of creating a linker script as well as the reasons for using one, \
@@ -247,7 +266,8 @@ __attribute__((section(".init.text")))int kern_entry()
 	// new_alloc_page = pmm_alloc_page();
 	// printk_color(rc_black,rc_light_cyan,"Allocate Physical Address: 0x%08X\n",new_alloc_page);
 
-	while(1);
+	panic("test");
+	
 	return 0;
 }
 

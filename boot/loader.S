@@ -1,3 +1,21 @@
+;    /*
+;  * =====================================================================================
+;  *
+;  *       Filename:  loader.S
+;  *
+;  *    Description:  bootloader吧控制权交给此程序，加载器，完成一些必要的功能，并把内核载入
+;  *
+;  *        Version:  1.0
+;  *        Created:  2019.4.16
+;  *       Revision:  none
+;  *       Compiler:  gcc
+;  *
+;  *         Author:  DTL(Tongliang Dong)
+;  *    
+;  *
+;  * =====================================================================================
+;  */
+   
    %include "boot.inc"
    ;宏BiosPrint 用来在实模式下输出字符串
    %macro BiosPrint 1	;参数指向要输入内容的起始位置，0作为结束标志，默认段寄存器为DS
@@ -46,7 +64,6 @@ done:
    ;人工对齐:total_mem_bytes4字节+gdt_ptr6字节+ards_buf244字节+ards_nr2,共256字节
    ards_buf times 244 db 0
    ards_nr dw 0		      ;用于记录ards结构体数量
-
    loader_start:
       ; push ds
       ; push ax
@@ -57,6 +74,8 @@ done:
 
       ; pop ax
       ; pop ds
+
+      ;一定要关掉中断，这个中断折磨了我一下午，最后我才发现先是没有关掉中断的缘故。不信可以去掉试一下。
       cli
       mov ax,0xb800
       mov gs,ax
@@ -249,6 +268,8 @@ enter_kernel:
 ; tmp_loop:
 ;    jmp tmp_loop
    
+   mov ebx,section_header_table
+
    call 0x100000
 
 ;-----------------   将kernel.bin中的segment拷贝到编译的地址   -----------
@@ -257,6 +278,53 @@ kernel_init:
    xor ebx, ebx		;ebx记录程序头表地址
    xor ecx, ecx		;cx记录程序头表中的program header数量
    xor edx, edx		;dx 记录program header尺寸,即e_phentsize
+
+   ; 先把跟section header table 有关系的信息存放在section_header_table处，在内核实现中使用
+   
+   ; 偏移32字节处是e_shoff表示节头表在文件中的偏移量
+   mov ebx,[KERNEL_BIN_BASE_ADDR + 32]
+   add ebx,KERNEL_BIN_BASE_ADDR
+   mov [section_header_table+0],ebx
+   ; 偏移46字节处是e_shentsize表示节头表中每个节头的大小,注意此处必须用bx而不是ebx，因为这个数据是2字节的
+   xor ebx,ebx
+   mov bx,[KERNEL_BIN_BASE_ADDR + 46]
+   mov [section_header_table + 4],ebx
+   ; 偏移48字节处是e_shnum表示节头表中有多少个节头，其实就是总共多少个节,此处bx同上
+   xor ebx,ebx
+   mov bx,[KERNEL_BIN_BASE_ADDR + 48]
+   mov [section_header_table + 8],ebx
+   ; 偏移50字节处是shsstrndx表示string name table在节头表中的索引，此处bx同上
+   xor ebx,ebx
+   mov bx,[KERNEL_BIN_BASE_ADDR + 50]
+   mov [section_header_table + 12],ebx
+
+   ; string name table 节也就是.shstrtab的addr是0，因为不会分配内存给他，所以我们这里必须把
+   ; 它的offset+整个内核在内存中的起始位置填充到addr方便后续使用
+   ; 具体每个偏移查看elf_section_header定义
+   mov eax,[section_header_table + 4]
+   mul dword [section_header_table + 12]
+   add eax,[section_header_table + 0]     ; eax此时存放shstrtab节头在内存中的地址
+   xor ebx,ebx
+   mov ebx,[eax+16]                       ; 偏移16是section_header 内的offset
+   add ebx,KERNEL_BIN_BASE_ADDR
+   mov [eax + 12],ebx                     ; 偏移12是section_header 内的addr
+
+   ; 设置symtab节，设置内容同上
+   add eax,[section_header_table + 4]     ; eax此时存放symtab节头在内存中的地址
+   xor ebx,ebx
+   mov ebx,[eax+16]
+   add ebx,KERNEL_BIN_BASE_ADDR
+   mov [eax + 12],ebx
+
+   ; 设置strtab节，设置内容同上
+   add eax,[section_header_table + 4]     ; eax此时存放strtab节头在内存中的地址
+   xor ebx,ebx
+   mov ebx,[eax+16]
+   add ebx,KERNEL_BIN_BASE_ADDR
+   mov [eax + 12],ebx
+
+
+
 
    mov dx, [KERNEL_BIN_BASE_ADDR + 42]	  ; 偏移文件42字节处的属性是e_phentsize,表示program header大小
    mov ebx, [KERNEL_BIN_BASE_ADDR + 28]   ; 偏移文件开始部分28字节的地方是e_phoff,表示第1 个program header在文件中的偏移量
@@ -441,3 +509,6 @@ rd_disk_m_32:
       ret
 loader_str: 
       db "This is loader.s",0
+
+section_header_table:
+      times 4 dd 0
