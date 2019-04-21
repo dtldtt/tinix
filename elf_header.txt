@@ -8,9 +8,9 @@ ELF Header:
   Type:                              EXEC (Executable file)
   Machine:                           Intel 80386
   Version:                           0x1
-  Entry point address:               0x10010a
+  Entry point address:               0x101000
   Start of program headers:          52 (bytes into file)
-  Start of section headers:          46820 (bytes into file)
+  Start of section headers:          188512 (bytes into file)
   Flags:                             0x0
   Size of this header:               52 (bytes)
   Size of program headers:           32 (bytes)
@@ -22,15 +22,15 @@ ELF Header:
 Section Headers:
   [Nr] Name              Type            Addr     Off    Size   ES Flg Lk Inf Al
   [ 0]                   NULL            00000000 000000 000000 00      0   0  0
-  [ 1] .init.text        PROGBITS        00100000 001000 00010a 00  AX  0   0  1
-  [ 2] .text             PROGBITS        0010010a 00110a 001ef6 00  AX  0   0  1
-  [ 3] .data             PROGBITS        00102000 003000 001000 00  WA  0   0  4
-  [ 4] .bss              NOBITS          00103000 004000 001000 00  WA  0   0 32
-  [ 5] .stab             PROGBITS        00104000 005000 004000 0c   A  6   0  4
-  [ 6] .stabstr          STRTAB          00108000 009000 002000 00   A  0   0  1
-  [ 7] .shstrtab         STRTAB          00000000 00b6a3 000040 00      0   0  1
-  [ 8] .symtab           SYMTAB          00000000 00b000 000430 10      9  42  4
-  [ 9] .strtab           STRTAB          00000000 00b430 000273 00      0   0  1
+  [ 1] .init.text        PROGBITS        00100000 001000 001000 00  AX  0   0  1
+  [ 2] .text             PROGBITS        00101000 002000 002000 00  AX  0   0 16
+  [ 3] .data             PROGBITS        00103000 004000 001000 00  WA  0   0  4
+  [ 4] .bss              NOBITS          00104000 005000 021444 00  WA  0   0 32
+  [ 5] .stab             PROGBITS        00125444 026444 004bbc 0c   A  6   0  4
+  [ 6] .stabstr          STRTAB          0012a000 02b000 002000 00   A  0   0  1
+  [ 7] .shstrtab         STRTAB          00000000 02e01e 000040 00      0   0  1
+  [ 8] .symtab           SYMTAB          00000000 02d000 000a30 10      9  60  4
+  [ 9] .strtab           STRTAB          00000000 02da30 0005ee 00      0   0  1
 Key to Flags:
   W (write), A (alloc), X (execute), M (merge), S (strings)
   I (info), L (link order), G (group), T (TLS), E (exclude), x (unknown)
@@ -38,8 +38,8 @@ Key to Flags:
 
 Program Headers:
   Type           Offset   VirtAddr   PhysAddr   FileSiz MemSiz  Flg Align
-  LOAD           0x001000 0x00100000 0x00100000 0x02000 0x02000 R E 0x1000
-  LOAD           0x003000 0x00102000 0x00102000 0x08000 0x08000 RW  0x1000
+  LOAD           0x001000 0x00100000 0x00100000 0x03000 0x03000 R E 0x1000
+  LOAD           0x004000 0x00103000 0x00103000 0x29000 0x29000 RW  0x1000
   GNU_STACK      0x000000 0x00000000 0x00000000 0x00000 0x00000 RWE 0x10
 
  Section to Segment mapping:

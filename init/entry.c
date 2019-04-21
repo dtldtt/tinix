@@ -18,13 +18,12 @@
 #include "console.h"
 #include "debug.h"
 #include "string.h"
-// #include "gdt.h"
-// #include "console.h"
-// #include "debug.h"
-// #include "idt.h"
-// #include "timer.h"
+#include "gdt.h"
+#include "idt.h"
+#include "timer.h"
+#include "pmm.h"
 // #include "string.h"
-// #include "pmm.h"
+// 
 // #include "vmm.h"
 // #include "heap.h"
 // #include "sched.h"
@@ -163,7 +162,10 @@
 // 		asm volatile("hlt");
 // 	}
 // }
-
+void interrupt5_handler(pt_regs_t *temp)
+{
+		printk("This is %dth interrupt handler!\n",temp->int_no);
+}
 __attribute__((section(".init.text")))int kern_entry()
 {
 	//asm volatile ("movl %esp,%eax");
@@ -228,43 +230,44 @@ __attribute__((section(".init.text")))int kern_entry()
 	// panic("test");
 	// init_debug();
 	// init_gdt();
-	// init_idt();
+	
 
+	init_gdt();
+	init_idt();
 	
 	printk_color(rc_black,rc_green,"\nHEllo,DTL kernel!\n");
-
-	// void interrupt5_handler(pt_regs *temp)
-	// {
-	// 	printk("This is %dth interrupt handler!\n",temp->int_no);
-	// }
 	
-	// interrupt_handler_t interrupt5=interrupt5_handler;
-	// register_interrupt_handler(5,interrupt5);
+	//printk("\n%X\n",mmap_information);
+	
+	interrupt_handler_t interrupt5 = interrupt5_handler;
+	register_interrupt_handler(5,interrupt5);
+	//printk("\n0x%X\n",idt_entries);
 
-	// asm volatile ("int $0x3");
-	// asm volatile ("int $0x4");
-	// asm volatile ("int $5");
+	asm volatile ("int $0x3");
+	asm volatile ("int $0x4");
+	asm volatile ("int $5");
 
 	//init_timer(100);// 传入的就是实际的频率
-	//asm volatile ("sti");
+	//enable_intr();
+	//printk("\n%X\n",total_mem_bytes);
+	printk_color(rc_black,rc_light_green,"\nTotal Memory Size: %d KB, %d MB\n",total_mem_bytes/1024,total_mem_bytes/1024/1024);
+	printk("kernel in memory start: 0x%08X\n", kern_start);
+	printk("kernel in memory end: 0x%08X\n", kern_end);
+	printk("kernel in memory used: %d KB\n\n", (kern_end-kern_start+1023)/1024);
+	show_memory_map();
 
-	// printk("kernel in memory start: 0x%08X\n", kern_start);
-	// printk("kernel in memory end: 0x%08X\n", kern_end);
-	// printk("kernel in memory used: %d KB\n\n", (kern_end-kern_start+1023)/1024);
-	// show_memory_map();
-
-	// init_pmm();
-	// printk_color(rc_black,rc_light_magenta,"\nThe number of Physical Memory Pages is %u \n\n",phy_page_count);
-	// // 测试分配页面
-	// int32_t new_alloc_page=NULL;
-	// new_alloc_page = pmm_alloc_page();
-	// printk_color(rc_black,rc_light_cyan,"Allocate Physical Address: 0x%08X\n",new_alloc_page);
-	// new_alloc_page = pmm_alloc_page();
-	// printk_color(rc_black,rc_light_cyan,"Allocate Physical Address: 0x%08X\n",new_alloc_page);
-	// new_alloc_page = pmm_alloc_page();
-	// printk_color(rc_black,rc_light_cyan,"Allocate Physical Address: 0x%08X\n",new_alloc_page);
-	// new_alloc_page = pmm_alloc_page();
-	// printk_color(rc_black,rc_light_cyan,"Allocate Physical Address: 0x%08X\n",new_alloc_page);
+	init_pmm();
+	printk_color(rc_black,rc_light_magenta,"\nThe number of Physical Memory Pages is %u \n\n",phy_page_count);
+	// 测试分配页面
+	int32_t new_alloc_page=NULL;
+	new_alloc_page = pmm_alloc_page();
+	printk_color(rc_black,rc_light_cyan,"Allocate Physical Address: 0x%08X\n",new_alloc_page);
+	new_alloc_page = pmm_alloc_page();
+	printk_color(rc_black,rc_light_cyan,"Allocate Physical Address: 0x%08X\n",new_alloc_page);
+	new_alloc_page = pmm_alloc_page();
+	printk_color(rc_black,rc_light_cyan,"Allocate Physical Address: 0x%08X\n",new_alloc_page);
+	new_alloc_page = pmm_alloc_page();
+	printk_color(rc_black,rc_light_cyan,"Allocate Physical Address: 0x%08X\n",new_alloc_page);
 
 	panic("test");
 	

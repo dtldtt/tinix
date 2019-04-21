@@ -41,8 +41,10 @@ struct gdt_ptr_t {
 
 // 初始化全局描述符表GDTR
 void init_gdt();
+void print_gdt();
 
 // GDT 加载到GDTR的汇编实现函数
 extern void gdt_flush(uint32_t);
+extern gdt_entry_t* gdt_entries;
 
 #endif      //INCLUDE_GDT_H

@@ -24,6 +24,7 @@ static elf_t kernel_elf;
 void init_debug()
 {
     //从GRUB提供的信息中获取到内核符号表和代码地址的信息
+    //printk("\nsection_header_table:%X\n",section_header_table);
     kernel_elf= elf_from_multiboot(section_header_table);
 }
 

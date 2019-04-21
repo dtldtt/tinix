@@ -98,13 +98,14 @@ SECTIONS
  *      For simplicity we simply bundle this in with the .data section.
  */
 
-/*ENTRY(kern_entry)*/
 SECTIONS
 {
 	. = 0x100000;
+	PROVIDE(kern_start = .);
 	.init.text :
 	{
 		*(.init.text)
+		. = ALIGN(4096);
 	}
 	.text :
 	{
@@ -132,7 +133,7 @@ SECTIONS
 		*(.stabstr)
 	 	. = ALIGN(4096);
 	}
-	
+	PROVIDE(kern_end = .);
 	
 	/DISCARD/ : { *(.comment) *(.eh_frame) }
 }
