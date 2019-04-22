@@ -210,6 +210,7 @@ p_mode_start:
 ; tmp_loop:
 ;    jmp tmp_loop
 
+
 ; -------------------------   加载kernel  ----------------------
 ; 由于这里我要读400个扇区，但是设置读取扇区数的端口0x1f2是一个8位的端口，一次最多读取255个扇区
 ; 所以这里我分两次读取，一次读取200个扇区
@@ -229,43 +230,44 @@ p_mode_start:
    call rd_disk_m_32
    
 
-;    ; 创建页目录及页表并初始化页内存位图
-;    call setup_page
+   ; 创建页目录及页表并初始化页内存位图
+   call setup_page
 
-;    ;要将描述符表地址及偏移量写入内存gdt_ptr,一会用新地址重新加载
-;    sgdt [gdt_ptr]	      ; 存储到原来gdt所有的位置
+   ;要将描述符表地址及偏移量写入内存gdt_ptr,一会用新地址重新加载
+   sgdt [gdt_ptr]	      ; 存储到原来gdt所有的位置
 
-;    ;将gdt描述符中视频段描述符中的段基址+0xc0000000
-;    mov ebx, [gdt_ptr + 2]  
-;    or dword [ebx + 0x18 + 4], 0xc0000000      ;视频段是第3个段描述符,每个描述符是8字节,故0x18。
-; 					      ;段描述符的高4字节的最高位是段基址的31~24位
+   ;将gdt描述符中视频段描述符中的段基址+0xc0000000
+   mov ebx, [gdt_ptr + 2]  
+   or dword [ebx + 0x18 + 4], 0xc0000000      ;视频段是第3个段描述符,每个描述符是8字节,故0x18。
+					      ;段描述符的高4字节的最高位是段基址的31~24位
 
-;    ;将gdt的基址加上0xc0000000使其成为内核所在的高地址
-;    add dword [gdt_ptr + 2], 0xc0000000
+   ;将gdt的基址加上0xc0000000使其成为内核所在的高地址
+   add dword [gdt_ptr + 2], 0xc0000000
 
-;    add esp, 0xc0000000        ; 将栈指针同样映射到内核地址
+   add esp, 0xc0000000        ; 将栈指针同样映射到内核地址
 
-;    ; 把页目录地址赋给cr3
-;    mov eax, PAGE_DIR_TABLE_POS
-;    mov cr3, eax
+   ; 把页目录地址赋给cr3
+   mov eax, PAGE_DIR_TABLE_POS
+   mov cr3, eax
 
-;    ; 打开cr0的pg位(第31位)
-;    mov eax, cr0
-;    or eax, 0x80000000
-;    mov cr0, eax
+   ; 打开cr0的pg位(第31位)
+   mov eax, cr0
+   or eax, 0x80000000
+   mov cr0, eax
 
-;    ;在开启分页后,用gdt新的地址重新加载
-;    lgdt [gdt_ptr]             ; 重新加载
+   ;在开启分页后,用gdt新的地址重新加载
+   lgdt [gdt_ptr]             ; 重新加载
 
-; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;  此时不刷新流水线也没问题  ;;;;;;;;;;;;;;;;;;;;;;;;
-; ;由于一直处在32位下,原则上不需要强制刷新,经过实际测试没有以下这两句也没问题.
-; ;但以防万一，还是加上啦，免得将来出来莫句奇妙的问题.
-;    jmp SELECTOR_CODE:enter_kernel	  ;强制刷新流水线,更新gdt
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;  此时不刷新流水线也没问题  ;;;;;;;;;;;;;;;;;;;;;;;;
+;由于一直处在32位下,原则上不需要强制刷新,经过实际测试没有以下这两句也没问题.
+;但以防万一，还是加上啦，免得将来出来莫句奇妙的问题.
+   jmp SELECTOR_CODE:enter_kernel	  ;强制刷新流水线,更新gdt
 enter_kernel:    
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
    call kernel_init
    
-   mov esp, 0x10000
+   mov esp, KERNEL_STACK
 
    ;jmp KERNEL_ENTRY_POINT                 ; 用地址0x1500访问测试，结果ok
 ;    mov byte [gs:320],'D'
@@ -280,7 +282,7 @@ enter_kernel:
    mov edx,ards_buf
    
 
-   call 0x100000
+   jmp KERNEL_ENTRY_POINT
 
 ;-----------------   将kernel.bin中的segment拷贝到编译的地址   -----------
 kernel_init:
@@ -334,7 +336,7 @@ kernel_init:
    mov [eax + 12],ebx
 
 
-
+   ; 下面是读取program header,并把各段内容复制到指定的内存地址
 
    mov dx, [KERNEL_BIN_BASE_ADDR + 42]	  ; 偏移文件42字节处的属性是e_phentsize,表示program header大小
    mov ebx, [KERNEL_BIN_BASE_ADDR + 28]   ; 偏移文件开始部分28字节的地方是e_phoff,表示第1 个program header在文件中的偏移量
@@ -346,13 +348,13 @@ kernel_init:
    je .PTNULL
 
    ;为函数memcpy压入参数,参数是从右往左依然压入.函数原型类似于 memcpy(dst,src,size)
-   push dword [ebx + 16]		  ; program header中偏移16字节的地方是p_filesz,压入函数memcpy的第三个参数:size
-   mov eax, [ebx + 4]			  ; 距程序头偏移量为4字节的位置是p_offset
-   add eax, KERNEL_BIN_BASE_ADDR	  ; 加上kernel.bin被加载到的物理地址,eax为该段的物理地址
-   push eax				  ; 压入函数memcpy的第二个参数:源地址
-   push dword [ebx + 8]			  ; 压入函数memcpy的第一个参数:目的地址,偏移程序头8字节的位置是p_vaddr，这就是目的地址
-   call mem_cpy				  ; 调用mem_cpy完成段复制
-   add esp,12				  ; 清理栈中压入的三个参数
+   push dword [ebx + 16]				; program header中偏移16字节的地方是p_filesz,压入函数memcpy的第三个参数:size
+   mov eax, [ebx + 4]					; 距程序头偏移量为4字节的位置是p_offset
+   add eax, KERNEL_BIN_BASE_ADDR		; 加上kernel.bin被加载到的物理地址,eax为该段的物理地址
+   push eax								; 压入函数memcpy的第二个参数:源地址
+   push dword [ebx + 8]					; 压入函数memcpy的第一个参数:目的地址,偏移程序头8字节的位置是p_vaddr，这就是目的地址
+   call mem_cpy							; 调用mem_cpy完成段复制
+   add esp,12							; 清理栈中压入的三个参数
 .PTNULL:
    add ebx, edx				  ; edx为program header大小,即e_phentsize,在此ebx指向下一个program header 
    loop .each_segment
@@ -366,11 +368,11 @@ mem_cpy:
    cld
    push ebp
    mov ebp, esp
-   push ecx		   ; rep指令用到了ecx，但ecx对于外层段的循环还有用，故先入栈备份
-   mov edi, [ebp + 8]	   ; dst
-   mov esi, [ebp + 12]	   ; src
-   mov ecx, [ebp + 16]	   ; size
-   rep movsb		   ; 逐字节拷贝
+   push ecx					; rep指令用到了ecx，但ecx对于外层段的循环还有用，故先入栈备份
+   mov edi, [ebp + 8]		; dst
+   mov esi, [ebp + 12]		; src
+   mov ecx, [ebp + 16]		; size
+   rep movsb				; 逐字节拷贝
 
    ;恢复环境
    pop ecx		
@@ -389,37 +391,44 @@ setup_page:
    loop .clear_page_dir
 
 ;开始创建页目录项(PDE)
-.create_pde:				     ; 创建Page Directory Entry
+.create_pde:									; 创建Page Directory Entry
    mov eax, PAGE_DIR_TABLE_POS
-   add eax, 0x1000 			     ; 此时eax为第一个页表的位置及属性
-   mov ebx, eax				     ; 此处为ebx赋值，是为.create_pte做准备，ebx为基址。
+   add eax, 0x1000								; 此时eax为第一个页表的位置及属性
+   mov ebx, eax									; 此处为ebx赋值，是为.create_pte做准备，ebx为基址。
 
 ;   下面将页目录项0和0xc00都存为第一个页表的地址，
 ;   一个页表可表示4MB内存,这样0xc03fffff以下的地址和0x003fffff以下的地址都指向相同的页表，
 ;   这是为将地址映射为内核地址做准备
-   or eax, PG_US_U | PG_RW_W | PG_P	     ; 页目录项的属性RW和P位为1,US为1,表示用户属性,所有特权级别都可以访问.
-   mov [PAGE_DIR_TABLE_POS + 0x0], eax       ; 第1个目录项,在页目录表中的第1个目录项写入第一个页表的位置(0x101000)及属性(3)
-   mov [PAGE_DIR_TABLE_POS + 0xc00], eax     ; 一个页表项占用4字节,0xc00表示第768个页表占用的目录项,0xc00以上的目录项用于内核空间,
+   or eax, PG_US_U | PG_RW_W | PG_P				; 页目录项的属性RW和P位为1,US为1,表示用户属性,所有特权级别都可以访问.
+   mov [PAGE_DIR_TABLE_POS + 0x0], eax			; 第1个目录项,在页目录表中的第1个目录项写入第一个页表的位置(0x101000)及属性(3)
+   mov [PAGE_DIR_TABLE_POS + 0xc00], eax	; 一个页表项占用4字节,0xc00 表示第768个页表占用的目录项,768以上的目录项用于内核空间,
 					     ; 也就是页表的0xc0000000~0xffffffff共计1G属于内核,0x0~0xbfffffff共计3G属于用户进程.
+						 ; 0xc0000000 前10位是1100_0000_00=0x300=768
    sub eax, 0x1000
-   mov [PAGE_DIR_TABLE_POS + 4092], eax	     ; 使最后一个目录项指向页目录表自己的地址
+   mov [PAGE_DIR_TABLE_POS + 4092], eax	   		; 使最后一个目录项指向页目录表自己的地址
 
 ;下面创建页表项(PTE)
-   mov ecx, 256				     ; 1M低端内存 / 每页大小4k = 256
+   mov ecx, 1024                              	; 低端 4M 内存 / 每页大小4k = 1024
+						; 其中包括低端1M内存是内核区域，1M - 2M 是内核区域的, 2M-3M为内核映像文件预留
+						; 3-4M为页表区域预留，等内核加载后会把页表移到低端区域
    mov esi, 0
-   mov edx, PG_US_U | PG_RW_W | PG_P	     ; 属性为7,US=1,RW=1,P=1
-.create_pte:				     ; 创建Page Table Entry
-   mov [ebx+esi*4],edx			     ; 此时的ebx已经在上面通过eax赋值为0x101000,也就是第一个页表的地址 
-   add edx,4096
+   mov edx, PG_US_U | PG_RW_W | PG_P         	; 属性为7,US=1,RW=1,P=1,此时edx表示物理页第0页
+.create_pte:				                    ; 创建Page Table Entry
+   mov [ebx+esi*4],edx							; 此时的ebx已经在上面通过eax赋值为0x101000,也就是第一个页表的地址 
+   add edx,4096                  				; 每次加一个页表的长度，表示当前页表的下一项
    inc esi
    loop .create_pte
 
-;创建内核其它页表的PDE
+;创建内核其它页表的PDE，因为我们把3G - 4G的虚拟空间留给了内核，刚才只指定了第一个页目录项，也就是第 0xc00个，现在吧剩下的
+;也就是768-1022项都分配了页表，注意这时候只是给页目录768 - 1022都分配了对应的页表，但是实际的页表并没有创建
+; 我这里只打算支持512MB内存，毕竟只是个小的操作系统内核，所以 512mb / 每页大小4k /每个页表能容纳1024页 = 128个页表
+; 所以我们这里只分配 从768 到 768 + 128 = 896项的页表
+; 页表数128 * 每个页表的大小4kb = 页表共需要512KB的空间
    mov eax, PAGE_DIR_TABLE_POS
    add eax, 0x2000 		     ; 此时eax为第二个页表的位置
    or eax, PG_US_U | PG_RW_W | PG_P  ; 页目录项的属性RW和P位为1,US为0
    mov ebx, PAGE_DIR_TABLE_POS
-   mov ecx, 254			     ; 范围为第769~1022的所有目录项数量
+   mov ecx, 127			     ; 范围为第769~896的所有目录项数量
    mov esi, 769
 .create_kernel_pde:
    mov [ebx+esi*4], eax

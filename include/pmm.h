@@ -25,7 +25,7 @@
 #define STACK_SIZE 8192
 
 // 支持的最大物理内存（128MB）
-#define PMM_MAX_SIZE 0x8000000
+#define PMM_MAX_SIZE 0x80
 
 // 物理内存页框大小4KB
 #define PMM_PAGE_SIZE 0x1000

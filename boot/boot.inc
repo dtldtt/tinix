@@ -1,16 +1,25 @@
+;-------------  boot    ---------------
+BOOTSEC equ 0x07c0
+INITSEC equ 0x9000
+
 ;-------------	 loader和kernel   ----------
 
-LOADER_BASE_ADDR equ 0x900 
+LOADER_BASE_ADDR equ 0x8000
 LOADER_STACK_TOP equ LOADER_BASE_ADDR
+
+
 LOADER_START_SECTOR equ 0x2
 READ_SECTOR_NUM  equ 200
 
-KERNEL_BIN_BASE_ADDR equ 0x10000
+KERNEL_BIN_BASE_ADDR equ 0x200000
 KERNEL_START_SECTOR equ 0x9
-KERNEL_ENTRY_POINT equ 0xc0001500
+KERNEL_ENTRY_POINT equ 0xc0100000
+
+KERNEL_STACK equ 0xc0009f000
 
 ;-------------   页表配置   ----------------
-PAGE_DIR_TABLE_POS equ 0x100000
+PAGE_DIR_TABLE_POS equ 0x300000					; 先把页表放在这个位置，进入内核以后再移动页表
+PAGE_OFFSET equ 0xc0000000
 
 ;--------------   gdt描述符属性  -----------
 DESC_G_4K   equ	  1_00000000000000000000000b   

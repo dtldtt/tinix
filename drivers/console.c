@@ -17,10 +17,10 @@
  */
 #include "common.h"
 #include "console.h"
-//#include "vmm.h"
+#include "vmm.h"
 
 //显卡显存映射在内存中的起点为0xB8000
-static uint16_t *video_memory=(uint16_t *) 0xB8000;
+static uint16_t *video_memory=(uint16_t *) (0xB8000+PAGE_OFFSET);
 
 //屏幕光标的坐标x,y
 static uint8_t cursor_x=0;

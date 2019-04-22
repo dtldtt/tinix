@@ -16,7 +16,7 @@
 ;  * =====================================================================================
 ;  */
 [BITS 32]
-KERNEL_BASE_BIN_ADDR equ 0x10000
+
 [EXTERN kern_entry]
 [GLOBAL section_header_table]
 [GLOBAL gdt_entries]
@@ -24,7 +24,45 @@ KERNEL_BASE_BIN_ADDR equ 0x10000
 [GLOBAL total_mem_bytes]
 [GLOBAL mmap_information]
 
-section .data 
+section .init.text
+
+
+
+    mov [total_mem_bytes],eax
+    mov [ards_info],ecx
+    push ecx
+
+    ; 转移section_header_table到内核所在内存区域，这个结构体只有4个4字节的数据，所以用movsd转移四次就可以了
+    mov ecx,4
+    mov esi,ebx
+    mov edi,section_header_table_transfer
+    cld
+    rep movsd
+    
+    ; 下面指令用来吧ards的所有结构体从loader地址空间中搬过来，ecx中最终保留要搬运的次数，因为使用了movsb
+    ; 每次搬运1个字节，而一个结构体中是20个字节，总共需要搬运20*ards_num个字节，这个数据最后存放在ecx中
+    ; 原地址自然是从edx传送过来的在loader中ards_addr的地址，目的地址是本程序中ards_addr的地址
+    xor eax,eax
+    pop ecx
+    push edx
+    mov ax,20
+    mul cx
+    mov ecx,eax
+    pop edx
+    mov esi,edx
+    mov edi,ards_addr
+    cld
+    rep movsb
+
+
+    call kern_entry
+
+stop:
+    hlt
+    jmp stop
+
+
+section .init.data 
 ; GDT表位置，在.data节的开始
 GDT_BASE:   dd  0x00000000 
 	        dd  0x00000000
@@ -72,42 +110,3 @@ ards_info:
 mmap_information:
             dd ards_info
 
-
-
-
-section .init.text
-
-
-
-    mov [total_mem_bytes],eax
-    mov [ards_info],ecx
-    push ecx
-
-    ; 转移section_header_table到内核所在内存区域，这个结构体只有4个4字节的数据，所以用movsd转移四次就可以了
-    mov ecx,4
-    mov esi,ebx
-    mov edi,section_header_table_transfer
-    cld
-    rep movsd
-    
-    ; 下面指令用来吧ards的所有结构体从loader地址空间中搬过来，ecx中最终保留要搬运的次数，因为使用了movsb
-    ; 每次搬运1个字节，而一个结构体中是20个字节，总共需要搬运20*ards_num个字节，这个数据最后存放在ecx中
-    ; 原地址自然是从edx传送过来的在loader中ards_addr的地址，目的地址是本程序中ards_addr的地址
-    xor eax,eax
-    pop ecx
-    push edx
-    mov ax,20
-    mul cx
-    mov ecx,eax
-    pop edx
-    mov esi,edx
-    mov edi,ards_addr
-    cld
-    rep movsb
-
-
-    call kern_entry
-
-stop:
-    hlt
-    jmp stop

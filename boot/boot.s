@@ -130,13 +130,37 @@ start:
 
    mov byte [gs:0x08],'R'
    ;mov byte [gs:0x09],0xA4
-	 
+
+;    ; 接下来移动自身到0x90000处，这样可以修改段寄存器，将loader移动到想要的0x9d000
+;    ; 这个完全可以当成boot最开始的代码，前边的其实只是为了测试代码是正常的，所以没有去掉了。
+; copy_myself:
+;    mov ax,BOOTSEC
+;    mov ds,ax
+;    mov ax,INITSEC
+;    mov es,ax
+;    mov cx,256		;一次移动一个字，总共512字节，共需要256次
+;    xor si,si
+;    xor di,di
+;    rep movsw
+
+; 	; 跳转到复制后地方的boot执行
+; 	jmp INITSEC:go
+
+; 	;准备读入loader到0x9d000处
+; go:
+; 	mov ax,INITSEC
+; 	mov ds,ax	 
    mov eax,LOADER_START_SECTOR	 ; 起始扇区lba地址
    mov bx,LOADER_BASE_ADDR       ; 写入的地址
    mov cx,4			 ; 待读入的扇区数
    call rd_disk_m_16		 ; 以下读取程序的起始部分（一个扇区）
   
-   jmp LOADER_BASE_ADDR + 0x300
+;    jmp far [jmp_to_loader]
+
+; jmp_to_loader:
+; 	dw 0x300,
+; 	dw LOADER_BASE_ADDR/16
+	jmp LOADER_BASE_ADDR + 0x300
        
 ;-------------------------------------------------------------------------------
 ;功能:读取硬盘n个扇区

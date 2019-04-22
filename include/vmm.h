@@ -108,6 +108,6 @@ void unmap(pgd_t *pgd_now,uint32_t va);
 uint32_t get_mapping(pgd_t *pgd_now, uint32_t va, uint32_t *pa);
 
 // 页错误中断的中断处理函数
-void page_fault(pt_regs *regs);
+void page_fault(pt_regs_t *regs);
 
 #endif  // INCLUDE_VMM_H

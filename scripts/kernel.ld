@@ -100,35 +100,41 @@ SECTIONS
 
 SECTIONS
 {
+	PROVIDE(kern_start = 0xC0100000);
 	. = 0x100000;
-	PROVIDE(kern_start = .);
-	.init.text :
+	. += 0xC0000000;
+	.init.text : AT(ADDR(.init.text) - 0xC0000000)	/* AT设置地址，实际加载地址,因为访问地址是虚拟地址，但是实际的加载地址还应该是物理地址 */
 	{
 		*(.init.text)
 		. = ALIGN(4096);
 	}
-	.text :
+	.init.data : AT(ADDR(.init.data) - 0xC0000000)
+	{
+		*(.init.data)
+		. = ALIGN(4096);
+	}
+	.text :	AT(ADDR(.text) - 0xC0000000)	
 	{
 		*(.text)
 		. = ALIGN(4096);
 	}
-	.data :
+	.data : AT(ADDR(.data) - 0xC0000000)
 	{
 		*(.data)
 		*(.rodata)
 		. = ALIGN(4096);
 	}
-	.bss :
+	.bss : AT(ADDR(.data) - 0xC0000000)
 	{
 		*(.bss)
 		. = ALIGN(4096);
 	}
-	.stab :
+	.stab : AT(ADDR(.data) - 0xC0000000)
 	{
 		*(.stab)
 		. = ALIGN(4096);
 	}
-	.stabstr :
+	.stabstr : AT(ADDR(.data) - 0xC0000000)
 	{
 		*(.stabstr)
 	 	. = ALIGN(4096);
