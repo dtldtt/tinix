@@ -19,7 +19,7 @@
  #include "common.h"
  #include "string.h"
  #include "elf.h"
- //#include "vmm.h"
+ #include "vmm.h"
 
  //从multiboot_t 结构中获取信息ELF
  elf_t elf_from_multiboot(section_header_t *sht)
@@ -30,17 +30,18 @@
 
      uint32_t shstrtab = sh[sht->shndx].addr;
      for (i=0;i<sht->num;i++) {      //遍历所有节section
-         const char *name=(const char *)(shstrtab + sh[i].name);
+         const char *name=(const char *)(shstrtab + sh[i].name) + PAGE_OFFSET;
          //printk("%s\n",name);
          //在GRUB提供的multiboot信息中找内核ELF格式所提取的字符串表和符号表
          if(strcmp(name,".strtab")==0) {
              //printk("%s\n",name);
-             elf.strtab=(const char *)sh[i].addr ;
+             elf.strtab=(const char *)sh[i].addr + PAGE_OFFSET;
+             //printk("\nstrtab.add:%X\n",elf.strtab);
              elf.strtabsz=sh[i].size;
          }
          if(strcmp(name,".symtab")==0){
              //printk("%s\n",name);
-             elf.symtab=(elf_symbol_t *)sh[i].addr ;
+             elf.symtab=(elf_symbol_t *)sh[i].addr + PAGE_OFFSET;
              elf.symtabsz=sh[i].size;
          }
      }

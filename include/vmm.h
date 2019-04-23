@@ -22,6 +22,12 @@
 #include "idt.h"
 //#include "vmm.h"
 
+// 页目录在内核中的地址，在loader.S中设置了
+#define PGD_ADDR 0xc0200000
+
+// 第一个页表在内核中的地址
+#define PTE_ADDR 0xc0201000
+
 // 内核的偏移地址
 #define PAGE_OFFSET 0xc0000000
 
@@ -37,17 +43,17 @@
 /**
  * R/W位---第1位，读/写标志位
  * 为0只读，为1可读可写
- * 这里设置为1
  */
 #define PAGE_WRITE 0x2
+#define PAGE_READ 0x0
 
 /**
  * U/S---第2位，用户/超级用户位
  * 为1时，表示任何特权级程序都可以访问该页面
  * 为0时，表示只能被运行在特权机（0,1,2）上的程序访问
- * 这里设置为1
  */
 #define PAGE_USER 0x4
+#define PAGE_SYS 0x0
 
 // 虚拟分页大小
 #define PAGE_SIZE   4096
@@ -89,7 +95,7 @@ typedef uint32_t pte_t;
 #define PTE_COUNT 128
 
 // 内核页目录区域
-extern pgd_t pgd_kern[PGD_SIZE];
+extern pgd_t *pgd_kern;
 
 // 初始化虚拟内存管理
 void init_vmm();
@@ -97,14 +103,14 @@ void init_vmm();
 // 更换当前的页目录
 void switch_pgd(uint32_t pd);
 
-// 使用flags指出的页权限，把物理地址pa映射到虚拟地址va
+// 使用flags指出的页权限，把虚拟地址va映射到物理地址pa
 void map(pgd_t *pgd_now, uint32_t va,uint32_t pa,uint32_t flags);
 
 // 取消虚拟地址va的物理映射
 void unmap(pgd_t *pgd_now,uint32_t va);
 
 // 如果虚拟地址va映射到物理地址则返回1
-// 同时如果pa不是空指针则把物理地址写入pa参数
+// 同时如果pa不是空指针则把va对应的物理地址写入到pa
 uint32_t get_mapping(pgd_t *pgd_now, uint32_t va, uint32_t *pa);
 
 // 页错误中断的中断处理函数

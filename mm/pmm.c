@@ -21,13 +21,14 @@
 #include "pmm.h"
 
 // 物理内存页面管理的栈
-static uint32_t pmm_stack[PAGE_MAX_SIZE+1];
+static uint32_t *pmm_stack;
 
 // 物理内存管理的栈指针
 static uint32_t pmm_stack_top=0;
 
-// 物理内存页的数量
-uint32_t phy_page_count=0;
+// 物理内存页的数量,初始值为2，因为在加载内核前
+// 第0和第768个页表已经建立，负责映射低端4M的内容
+uint32_t phy_page_count=2;
 
 void show_memory_map()
 {
@@ -63,11 +64,13 @@ void init_pmm()
         // 如果是可用内存 (type=1，其他类型指向保留区域)
         if (map_entry->type==1 && map_entry->base_addr_low==0x100000)
         {
-            printk("Enter the for loop\n");
+            //printk("Enter the for loop\n");
             // 把内核结束位置(base_addr_low + (uint32_t)(kern_end-kern_start))到内存结束位置的内存段
             // 按照页存储到页管理栈里
-            // 最多支持128MB内存，这个主要看PMM_MAX_SIZE设置了多大
-            uint32_t page_addr = map_entry->base_addr_low + (uint32_t)(kern_end-kern_start);
+            // 最多支持512MB内存
+            //uint32_t page_addr = map_entry->base_addr_low + (uint32_t)(kern_end-kern_start);
+            // 从0x400000地址以后开始分配页面，之前的地址保留给内核和内核的页表使用
+            uint32_t page_addr = 0x400000;
             uint32_t length = map_entry->base_addr_low + map_entry->length_low;
 
             while (page_addr < length && page_addr <= PMM_MAX_SIZE)
