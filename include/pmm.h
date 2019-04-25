@@ -21,8 +21,7 @@
 
 #include "information.h"
 
-// 线程栈的大小
-#define STACK_SIZE 8192
+
 
 // 支持的最大物理内存（512MB）
 #define PMM_MAX_SIZE 0x20000000
@@ -42,11 +41,11 @@
 extern uint8_t kern_start[];
 extern uint8_t kern_end[];
 
-// 开启分页后的内核栈
-extern uint32_t *kern_stack;
+// // 开启分页后的内核栈,在head.s中定义
+// extern uint32_t *kern_stack;
 
-// 内核栈的栈顶
-extern uint32_t kern_stack_top;
+// // 内核栈的栈顶
+// extern uint32_t kern_stack_top;
 
 // 动态分配物理内存页的总数
 extern uint32_t phy_page_count;

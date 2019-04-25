@@ -24,14 +24,14 @@
 // 暂时设定只有前5秒显示tick，后面不再显示
 void timer_callback(pt_regs_t *regs)
 {
-	static uint32_t tick = 0;
-	if(tick<=500){
-		printk_color(rc_black, rc_red, "Tick: %d\n", tick++);
-	}
-	else {
-		unable_intr();
-	}
-	//schedule();
+	// static uint32_t tick = 0;
+	// if(tick<=500){
+	// 	printk_color(rc_black, rc_red, "Tick: %d\n", tick++);
+	// }
+	// else {
+	// 	unable_intr();
+	// }
+	schedule();
 }
 
 

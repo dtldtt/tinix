@@ -28,12 +28,12 @@
 [GLOBAL idt_entries]
 [GLOBAL total_mem_bytes]
 [GLOBAL mmap_information]
-[GLOBAL kern_stack]
+
 
 section .init.text
 
 
-    mov [kern_stack],esi
+    mov [kern_stack],esi          
     mov [total_mem_bytes],eax
     mov [ards_info],ecx
     push ecx

@@ -20,9 +20,10 @@
 #define INCLUDE_HEAP_H
 
 #include "types.h"
+#include "information.h"
 
-// 堆起始地址
-#define HEAP_START 0xE0000000
+// 堆起始地址，放在内存结束的后20M，留给堆的空间是20M，在初始化时赋值
+uint32_t heap_start;
 
 // 内存块的头部
 // 每一个分配的内存块都有一个头部，方便管理

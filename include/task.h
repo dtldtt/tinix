@@ -23,6 +23,8 @@
 #include "pmm.h"
 #include "vmm.h"
 
+// 线程栈的大小,8K
+#define STACK_SIZE 8192
 // 进程状态描述
 typedef
 enum task_state {
@@ -44,7 +46,7 @@ struct context {
 
 // 进程内存地址结构
 struct mm_struct {
-    pgd_t *pgd_dir;     //进程页表
+    uint32_t *pgd_dir;     //进程页表
 };
 
 // 进程控制块PCB

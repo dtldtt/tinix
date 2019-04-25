@@ -50,9 +50,9 @@ void print_cur_status()
 
 void panic(const char *msg)
 {
-    printk("*** SYSTEM panic: %s\n", msg);
+    printk_color(rc_black,rc_red,"********************* SYSTEM panic: %s *****************\n", msg);
     print_stack_trace();
-    printk("***\n");
+    printk_color(rc_black,rc_red,"************************\n");
 
     //致命错误发生猴打印栈信息然后停止在这里
     while(1);

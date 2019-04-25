@@ -20,6 +20,7 @@
 
 #include "types.h"
 #include "idt.h"
+#include "init.h"
 //#include "vmm.h"
 
 // 页目录在内核中的地址，在loader.S中设置了

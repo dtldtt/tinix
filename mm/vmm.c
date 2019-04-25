@@ -90,6 +90,7 @@ void map(pgd_t *pgd_now,uint32_t va,uint32_t pa,uint32_t flags)
 	// 其他页目录项是空的，这部分空间也是用户进程才会访问到的，在0xc0000000以下
 	// 所以如果访问到了，但是发现页目录是空的，就要分配具体的一页来当做该页目录对应的页表了
 	pte_t *pte= (pte_t *)(pgd_now[pgd_idx] & PAGE_MASK);
+	uint8_t found=0;
 	if (!pte) {
 		//printk("pte is 0\n");
 		 int i=0;
@@ -97,17 +98,21 @@ void map(pgd_t *pgd_now,uint32_t va,uint32_t pa,uint32_t flags)
 			//int index = i/8;
 			if(page_status[i] == 0 ){
 				pte = pte_kern[1024 + i*4] & PAGE_MASK;
+				pgd_now[pgd_idx]= (uint32_t)pte | PAGE_PRESENT | PAGE_WRITE;
+				found=1;
 				break;
-			}
+			} 
 		}
+		// 有没有找到空闲页
+		assert(found!=0,"Memory is run out!\n");
 		//printk("new pte is 0x%X, page table this item is 0x%X\n",pte,pgd_now[pgd_idx]);
 		
 	} 
 	else {
 		// 转换到内核虚拟地址，这样才能访问到页表所在的地址，因为给页表的地址是物理地址，我们必须给出虚拟地址才能访问到
-		pte = (pte_t *)((uint32_t)pte + PAGE_OFFSET);
+		//pte = (pte_t *)((uint32_t)pte + PAGE_OFFSET);
 	}
-	pgd_now[pgd_idx]= (uint32_t)pte | PAGE_PRESENT | PAGE_WRITE;
+	
 	//printk("new pte is 0x%X, page table this item is 0x%X\n",pte,pgd_now[pgd_idx]);
 	// 转换到内核虚拟地址
 	pte=(pte_t *)((uint32_t)pte +PAGE_OFFSET);
