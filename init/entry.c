@@ -45,7 +45,7 @@ int thread(void *arg)
 {
 	while(1){
 		if(flag==1){
-			printk_color(rc_black,rc_green,"B");
+			printk_color(rc_white,rc_green,"B");
 			flag=0;
 		}
 	}
@@ -149,7 +149,7 @@ __attribute__((section(".init.text")))int kern_entry()
 	enable_intr();
 	while(1){
 		if(flag==0){
-			printk_color(rc_black,rc_red,"A");
+			printk_color(rc_white,rc_red,"A");
 			flag=1;
 		}
 	}
