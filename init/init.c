@@ -64,7 +64,10 @@ static void choose_one()
 			test_kmalloc();
 		}else if(!strcmp(str,"6")){
 			test_multi_threads();
-		}else{
+		}else if(!strcmp(str,"7")){
+			test_panic();
+		}
+		else{
 			printk_color(rc_white,rc_red,"Invalid Input!Please choose one number and press Enter\n");
 		}
 	}
@@ -83,6 +86,7 @@ void welcome()
 	printk_color(rc_black,rc_yellow,"<4> Test Virtual Memory Mapping in Tinix\n");
 	printk_color(rc_black,rc_yellow,"<5> Test Dynamic size memory block Allocation in Tinix\n");
 	printk_color(rc_black,rc_yellow,"<6> Test Multiple Threads Switch in Tinix\n");
+	printk_color(rc_black,rc_yellow,"<7> Output Function Calling Stack, It is used in debug and kernel development\n");
 	printk("\nPlease one of the options above\n");
 	printk("For example, you can input 1 and then press Enter to test interrupt handler\n");
 

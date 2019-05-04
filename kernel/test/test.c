@@ -198,3 +198,13 @@ void test_multi_threads()
 	back_to_homepage();
 
 }
+
+void test_panic()
+{
+	console_clear();
+
+	printk("Now the function calling stack is below:\n");
+	panic("test",TRUE);
+			
+	back_to_homepage();
+}

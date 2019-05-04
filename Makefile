@@ -43,11 +43,14 @@ clean:
 
 .PHONY:load_image
 load_image:
-	nasm -I ./boot/ -o ./boot/boot.bin ./boot/boot.s
-	nasm -I ./boot/ -o ./boot/loader.bin ./boot/loader.s
+	nasm -I ./boot/ -d UBOOT -o ./boot/boot.bin ./boot/boot.s
+	nasm -I ./boot/ -d UBOOT -o ./boot/loader.bin ./boot/loader.s
 	dd if=./boot/boot.bin of=hard_disk.img bs=512 count=1 conv=notrunc
 	dd if=./boot/loader.bin of=hard_disk.img bs=512 count=4 seek=2 conv=notrunc
 	dd if=./tinix_kernel of=hard_disk.img bs=512 count=400 seek=9 conv=notrunc
+	dd if=./boot/boot.bin of=floppy.img bs=512 count=1 conv=notrunc
+	dd if=./boot/loader.bin of=floppy.img bs=512 count=4 seek=2 conv=notrunc
+	dd if=./tinix_kernel of=floppy.img bs=512 count=400 seek=9 conv=notrunc
 
 .PHONY:update_image
 update_image:

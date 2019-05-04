@@ -47,13 +47,13 @@ void print_cur_status()
     printk("%d: ss=%x\n",round,reg4);
     ++round;
 }
-
-void panic(const char *msg)
+// flag为1时为了展示，不无限循环
+void panic(const char *msg,bool flag)
 {
     printk_color(rc_black,rc_red,"********************* SYSTEM panic: %s *****************\n", msg);
     print_stack_trace();
     printk_color(rc_black,rc_red,"************************\n");
-
+    if(flag) return;
     //致命错误发生猴打印栈信息然后停止在这里
     while(1);
 }

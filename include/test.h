@@ -24,5 +24,6 @@ void test_page_alloc();
 void test_virtual_memory();
 void test_kmalloc();
 void test_multi_threads();
+void test_panic();
 
 #endif

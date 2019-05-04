@@ -37,7 +37,7 @@
 void init_debug();
 
 // 打印当前函数的调用栈信息
-void panic(const char *msg);
+void panic(const char *msg,bool flag);
 
 // 打印当前的段存器值
 void print_cur_status();

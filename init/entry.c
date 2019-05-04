@@ -80,7 +80,7 @@ __attribute__((section(".init.text")))int kern_entry()
 	
 	
 	/* ----------------------------------TEST SOME DEBUG FUNCTION TRACE THE FUNCTION STACK------------*/
-	panic("test");
+	//panic("test");
 
 	return 0;
 	
