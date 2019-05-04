@@ -30,7 +30,8 @@
 #include "heap.h"
 #include "sched.h"
 #include "task.h"
-
+#include "keyboard.h"
+#include "test.h"
 // 内核栈
 uint32_t kern_stack;
 // 内核栈顶
@@ -38,5 +39,6 @@ uint32_t kern_stack_top;
 
 // 初始化内核
 void init_all();
+void welcome();
 
 #endif

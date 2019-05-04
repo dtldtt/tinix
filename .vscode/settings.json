@@ -4,6 +4,7 @@
         "*.erb": "html",
         "heap.h": "c",
         "debug.h": "c",
-        "idt.h": "c"
+        "idt.h": "c",
+        "init.h": "c"
     }
 }

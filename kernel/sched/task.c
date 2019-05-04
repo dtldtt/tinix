@@ -68,6 +68,6 @@ int32_t kernel_thread(int (*fn)(void *),void *arg)
 void kthread_exit()
 {
     register uint32_t val asm ("eax");
-    printk("Thread exite with value %d\n",val);
-    while(1);
+    printk("Thread exit with value %d\n",val);
+    //while(1);
 }

@@ -1,4 +1,4 @@
-file hx_kernel
+file tinix_kernel
 target remote :1234
 break kern_entry
 c
