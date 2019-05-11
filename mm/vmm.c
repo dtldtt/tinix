@@ -106,13 +106,11 @@ void map(pgd_t *pgd_now,uint32_t va,uint32_t pa,uint32_t flags)
 		// 有没有找到空闲页
 		assert(found!=0,"Memory is run out!\n");
 		//printk("new pte is 0x%X, page table this item is 0x%X\n",pte,pgd_now[pgd_idx]);
-		
 	} 
 	else {
 		// 转换到内核虚拟地址，这样才能访问到页表所在的地址，因为给页表的地址是物理地址，我们必须给出虚拟地址才能访问到
 		//pte = (pte_t *)((uint32_t)pte + PAGE_OFFSET);
 	}
-	
 	//printk("new pte is 0x%X, page table this item is 0x%X\n",pte,pgd_now[pgd_idx]);
 	// 转换到内核虚拟地址
 	pte=(pte_t *)((uint32_t)pte +PAGE_OFFSET);
